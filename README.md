@@ -51,10 +51,6 @@ O projeto é composto por um único arquivo HTML contendo:
 2. Abra o arquivo `index.html` em qualquer navegador moderno.
 3. Comece a cuidar do seu Tamagotchi! 🐤
 
-## 📸 Screenshot
-
-![screenshot](https://via.placeholder.com/600x400.png?text=Tamagotchi+Virtual)
-
 ## 🛠️ Possíveis melhorias
 
 - Adicionar sprites ou animações ao invés de emojis.
