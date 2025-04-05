@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamagotchi</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            width: 350px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .pet {
+            font-size: 80px;
+            display: block;
+            margin: 10px auto;
+        }
+        .status-bar {
+            height: 15px;
+            width: 100%;
+            background: #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .bar {
+            height: 100%;
+            border-radius: 5px;
+            position: absolute;
+            left: 0;
+        }
+        .hunger { background: red; width: 50%; }
+        .happiness { background: green; width: 50%; }
+        .energy { background: blue; width: 50%; }
+        button {
+            font-size: 16px;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+        }
+        .feed { background: orange; }
+        .play { background: purple; }
+        .sleep { background: teal; }
+        .reset { background: gray; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🐣 Tamagotchi 🐣</h1>
+        <span class="pet" id="pet">😊</span>
+
+        <p>Fome</p>
+        <div class="status-bar"><div class="bar hunger" id="hungerBar"></div></div>
+        
+        <p>Felicidade</p>
+        <div class="status-bar"><div class="bar happiness" id="happinessBar"></div></div>
+        
+        <p>Energia</p>
+        <div class="status-bar"><div class="bar energy" id="energyBar"></div></div>
+
+        <button class="feed" onclick="feed()">🍖 Alimentar</button>
+        <button class="play" onclick="play()">🎾 Brincar</button>
+        <button class="sleep" onclick="sleep()">😴 Dormir</button>
+        <button class="reset" onclick="resetGame()">🔄 Reiniciar</button>
+    </div>
+
+    <audio id="feedSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+    <audio id="playSound" src="https://www.soundjay.com/button/beep-09.wav"></audio>
+    <audio id="sleepSound" src="https://www.soundjay.com/button/beep-10.wav"></audio>
+
+    <script>
+        let hunger, happiness, energy;
+        let gameLoop, eventLoop;
+        let petEmoji = "😊";
+
+        function initializeGame() {
+            hunger = parseInt(localStorage.getItem("hunger")) || 5;
+            happiness = parseInt(localStorage.getItem("happiness")) || 5;
+            energy = parseInt(localStorage.getItem("energy")) || 5;
+            updateStatus();
+            startTimers();
+        }
+
+        function updateStatus() {
+            document.getElementById("hungerBar").style.width = (hunger * 10) + "%";
+            document.getElementById("happinessBar").style.width = (happiness * 10) + "%";
+            document.getElementById("energyBar").style.width = (energy * 10) + "%";
+
+            if (hunger >= 10 || happiness <= 0 || energy <= 0) {
+                petEmoji = "💀"; // Morreu
+                clearInterval(gameLoop);
+                clearInterval(eventLoop);
+                alert("Seu Tamagotchi morreu! 😢 Reinicie o jogo.");
+            } else if (hunger >= 8) {
+                petEmoji = "😢"; // Com fome
+            } else if (happiness <= 3) {
+                petEmoji = "😞"; // Triste
+            } else if (energy <= 2) {
+                petEmoji = "🥱"; // Cansado
+            } else {
+                petEmoji = "😊"; // Feliz
+            }
+
+            document.getElementById("pet").textContent = petEmoji;
+
+            localStorage.setItem("hunger", hunger);
+            localStorage.setItem("happiness", happiness);
+            localStorage.setItem("energy", energy);
+        }
+
+        function feed() {
+            if (hunger > 0) hunger--;
+            happiness++;
+            document.getElementById("feedSound").play();
+            updateStatus();
+        }
+
+        function play() {
+            if (energy > 0) {
+                happiness++;
+                hunger++;
+                energy--;
+                document.getElementById("playSound").play();
+                updateStatus();
+            }
+        }
+
+        function sleep() {
+            energy = Math.min(10, energy + 3);
+            hunger++;
+            document.getElementById("sleepSound").play();
+            updateStatus();
+        }
+
+        function randomEvent() {
+            if (hunger >= 10 || happiness <= 0 || energy <= 0) return;
+            
+            let event = Math.random();
+            if (event < 0.3) {
+                hunger = Math.min(10, hunger + 1);
+                alert("Seu Tamagotchi ficou com fome! 🍖");
+            } else if (event < 0.6) {
+                happiness = Math.max(0, happiness - 1);
+                alert("Seu Tamagotchi está triste! 😢");
+            } else {
+                energy = Math.max(0, energy - 1);
+                alert("Seu Tamagotchi está cansado! 😴");
+            }
+            updateStatus();
+        }
+
+        function resetGame() {
+            clearInterval(gameLoop);
+            clearInterval(eventLoop);
+            localStorage.clear();
+            hunger = 5;
+            happiness = 5;
+            energy = 5;
+            petEmoji = "😊"; // Resetando o emoji
+            document.getElementById("pet").textContent = petEmoji;
+            updateStatus();
+            startTimers();
+            alert("Jogo reiniciado!");
+        }
+
+        function startTimers() {
+            gameLoop = setInterval(() => {
+                if (hunger >= 10 || happiness <= 0 || energy <= 0) {
+                    clearInterval(gameLoop);
+                    clearInterval(eventLoop);
+                    return;
+                }
+                hunger = Math.min(10, hunger + 1);
+                happiness = Math.max(0, happiness - 1);
+                energy = Math.max(0, energy - 1);
+                updateStatus();
+            }, 5000);
+
+            eventLoop = setInterval(randomEvent, 15000);
+        }
+
+        initializeGame();
+    </script>
+
+</body>
+</html>
